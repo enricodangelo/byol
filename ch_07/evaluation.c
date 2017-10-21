@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "mpc.h"
 
 /* If we are compiling on Windows compile these functions */
@@ -29,6 +31,10 @@ long eval_op(long x, char* op, long y) {
     if (strcmp(op, "-") == 0) { return x - y; }
     if (strcmp(op, "*") == 0) { return x * y; }
     if (strcmp(op, "/") == 0) { return x / y; }
+    if (strcmp(op, "%") == 0) { return x % y; }
+    if (strcmp(op, "^") == 0) { return (long)pow((double)x, (double)y); }
+    if (strcmp(op, "min") == 0) { return x < y ? x : y; }
+    if (strcmp(op, "max") == 0) { return x > y ? x : y; }
     return 0;
 }
 
@@ -38,13 +44,13 @@ long eval(mpc_ast_t* t) {
     if (strstr(t->tag, "number")) {
         return atoi(t->contents);
     }
-        
+
     /* The operator is always second child. */
     char* op = t->children[1]->contents;
-    
+
     /* We store the third child in `x` */
     long x = eval(t->children[2]);
-    
+
     /* Iterate the remaining children and combining. */
     int i = 3;
     while (strstr(t->children[i]->tag, "expr")) {
@@ -67,11 +73,11 @@ int main(int argc, char** argv) {
   /* Define them with the following Language */
   mpca_lang(
       MPCA_LANG_DEFAULT,
-      "                                                   \
-      number   : /-?[0-9]+/ ;                             \
-      operator : '+' | '-' | '*' | '/' ;                  \
-      expr     : <number> | '(' <operator> <expr>+ ')' ;  \
-      lispy    : /^/ <operator> <expr>+ /$/ ;             \
+      "                                                                  \
+      number   : /-?[0-9]+/ ;                                            \
+      operator : '+' | '-' | '*' | '/' | '%' | '^' | \"min\" | \"max\" ; \
+      expr     : <number> | '(' <operator> <expr>+ ')' ;                 \
+      lispy    : /^/ <operator> <expr>+ /$/ ;                            \
       ",
       Number, Operator, Expr, Lispy);
 
