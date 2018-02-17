@@ -51,7 +51,7 @@ enum
 typedef struct lval
 {
   int type;
-  long num;
+  double num;
   /* Error and Symbol types have some string data */
   char *err;
   char *sym;
@@ -62,7 +62,7 @@ typedef struct lval
 
 /* Construct a pointer to a new Number lval */
 lval *
-lval_num (long x)
+lval_num (double x)
 {
   lval *v = malloc (sizeof (lval));
   v->type = LVAL_NUM;
@@ -139,7 +139,7 @@ lval *
 lval_read_num (mpc_ast_t * t)
 {
   errno = 0;
-  long x = strtol (t->contents, NULL, 10);
+  double x = strtod (t->contents, NULL);
   return errno != ERANGE ? lval_num (x) : lval_err ("invalid number");
 }
 
@@ -225,7 +225,7 @@ lval_print (lval * v)
   switch (v->type)
     {
     case LVAL_NUM:
-      printf ("%li", v->num);
+      printf ("%f", v->num);
       break;
     case LVAL_ERR:
       printf ("Error: %s", v->err);
@@ -327,7 +327,7 @@ builtin_op (lval * a, char *op)
 	}
       if (strcmp (op, "%") == 0)
 	{
-	  x->num %= y->num;
+	  x->num = fmod(x->num, y->num);
 	}
 
       lval_del (y);
@@ -410,7 +410,7 @@ main (int argc, char **argv)
 
 /* Define them with the following Language */
   mpca_lang (MPCA_LANG_DEFAULT, "              \
-      number : /-?[0-9]+/ ;                    \
+      number : /-?[0-9]+(\\.[0-9][0-9]?)?/ ;    \
       symbol : '+' | '-' | '*' | '/' | '%';    \
       sexpr  : '(' <expr>* ')' ;               \
       expr   : <number> | <symbol> | <sexpr> ; \
